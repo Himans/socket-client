@@ -1,9 +1,9 @@
-import React from "react";
+mport React, { useEffect, useState } from "react";
 import io from "socket.io-client";
-import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import EmojiPicker from "emoji-picker-react";
+import { v4 as uuidv4 } from "uuid";
+import FormData from "form-data";
 
 import icon from "../images/emoji.svg";
 import styles from "../styles/Chat.module.css";
@@ -50,9 +50,19 @@ const Chat = () => {
 
     if (!message) return;
 
-    socket.emit("sendMessage", { message, params });
+    const formData = new FormData();
+    formData.append("file", message);
+
+    socket.emit("sendMessage", { message: formData, params });
 
     setMessage("");
+  };
+
+  const handleFileChange = ({ target: { files } }) => {
+    if (files && files.length > 0) {
+      const file = files[0];
+      setMessage(file);
+    }
   };
 
   const onEmojiClick = ({ emoji }) => setMessage(`${message} ${emoji}`);
@@ -72,6 +82,14 @@ const Chat = () => {
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit}>
+        <div className={styles.input}>
+          <input
+            type="file"
+            name="file"
+            onChange={handleFileChange}
+            required
+          />
+        </div>
         <div className={styles.input}>
           <input
             type="text"
@@ -94,7 +112,11 @@ const Chat = () => {
         </div>
 
         <div className={styles.button}>
-          <input type="submit" onSubmit={handleSubmit} value="Send a message" />
+          <input
+            type="submit"
+            onSubmit={handleSubmit}
+            value="Send a message"
+          />
         </div>
       </form>
     </div>
